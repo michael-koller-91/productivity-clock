@@ -3,33 +3,20 @@ import datetime
 import tkinter as tk
 
 
-class App:
-    def __init__(self, root):
-        self.root = root
-        column_width = 15
+class Menu(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
+
+class Main(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+
         # when running, refresh labels every "refresh_after" milliseconds
         self.refresh_after = 1000
-        # row 0
-        self.button_start = tk.Button(root, text='Start', width=column_width, command=self.start)
-        # row 1
-        self.button_pause = tk.Button(root, text='Pause', width=column_width, command=self.pause, state='disabled')
-        # row 1
-        self.label_timer_started = tk.Label(root)
-        self.label_timer_started_nr = tk.Label(root)
-        # row 2
-        self.label_timer = tk.Label(root)
-        self.label_timer_nr = tk.Label(root)
-        # row 3
-        self.label_countdown = tk.Label(root)
-        self.label_countdown_nr = tk.Label(root)
-        # row 4
-        self.label_pause = tk.Label(root)
-        self.label_pause_nr = tk.Label(root)
-        # row 5
-        self.label_timer_end = tk.Label(root)
-        self.label_timer_end_nr = tk.Label(root)
-        # row 6
-        self.button_reset = tk.Button(root, text='Reset', width=2*column_width, command=self.reset, state='disabled')
+        self.column_width = 20
 
         self.running = False
         self.timer_running = False
@@ -44,12 +31,38 @@ class App:
         self.pause_started = None
         self.total_pause_time = None
 
+        self.create_widgets()
         self.startup()
 
         # capturing keyboard events
         self.key_pause = '<space>'
         self.key_reset = '<Control-r>'
-        root.bind('<Return>', self.start)
+        self.bind('<Return>', self.start)
+
+    def create_widgets(self):
+        # row 0
+        self.button_start = tk.Button(self, text='Start', width=self.column_width, command=self.start)
+        # row 1
+        self.button_pause = tk.Button(
+            self, text='Pause', width=self.column_width, command=self.pause, state='disabled')
+        # row 1
+        self.label_timer_started = tk.Label(self)
+        self.label_timer_started_nr = tk.Label(self)
+        # row 2
+        self.label_timer = tk.Label(self)
+        self.label_timer_nr = tk.Label(self)
+        # row 3
+        self.label_countdown = tk.Label(self)
+        self.label_countdown_nr = tk.Label(self)
+        # row 4
+        self.label_pause = tk.Label(self)
+        self.label_pause_nr = tk.Label(self)
+        # row 5
+        self.label_timer_end = tk.Label(self)
+        self.label_timer_end_nr = tk.Label(self)
+        # row 6
+        self.button_reset = tk.Button(
+            self, text='Reset', width=2*self.column_width, command=self.reset, state='disabled')
 
     def startup(self):
         # row 0
@@ -104,10 +117,10 @@ class App:
 
             # enable reset key (and key bind)
             self.button_reset.config(state='normal')
-            self.root.bind(self.key_reset, self.reset)
+            self.bind(self.key_reset, self.reset)
             # disable pause key (and key bind)
             self.button_pause.config(state='disabled')
-            self.root.unbind(self.key_pause)
+            self.unbind(self.key_pause)
 
             # switch button text from "Stop" to "Start"
             self.button_start.configure(text='Start')
@@ -125,20 +138,20 @@ class App:
 
             # disable reset key (and key bind)
             self.button_reset.config(state='disabled')
-            self.root.unbind(self.key_reset)
+            self.unbind(self.key_reset)
             # enable pause key (and key bind)
             self.button_pause.config(state='normal')
-            self.root.bind(self.key_pause, self.pause)
+            self.bind(self.key_pause, self.pause)
 
             # switch button text from "Start" to "Stop"
             self.button_start.configure(text='Stop')
 
             # start the update loop
-            self.update()
+            self.update_labels()
 
-    def update(self):
+    def update_labels(self):
         # arbitrarily use this label to create an update loop
-        self.label_timer_started.after(self.refresh_after, self.update)
+        self.label_timer_started.after(self.refresh_after, self.update_labels)
 
         # system is not paused
         if self.timer_running:
@@ -204,17 +217,35 @@ class App:
         self.startup()
 
 
-root = tk.Tk()
-root.title('Work Timer')
-app = App(root)
+class MainApplication(tk.Frame):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.parent = parent
+        self.parent.title('Productivity Clock')
 
-# place window in bottom right corner
-root.update()
-wh = root.winfo_height()
-ww = root.winfo_width()
-sw = root.winfo_screenwidth() - ww - 15
-sh = root.winfo_screenheight() - wh - 80
-root.geometry('{}x{}+{}+{}'.format(ww, wh, sw, sh))
-root.resizable(0, 0)
+        self.main = Main(self)
+        self.main.grid()
+        # keyboard focus
+        self.main.focus_set()
 
-root.mainloop()
+        self.menu = Menu(self)
+        self.menu.grid()
+
+        # place window in bottom right corner
+        self.parent.update()
+        wh = self.main.winfo_height()
+        ww = self.main.winfo_width()
+        sw = self.parent.winfo_screenwidth() - ww - 15
+        sh = self.parent.winfo_screenheight() - wh - 80
+        self.parent.geometry('{}x{}+{}+{}'.format(ww, wh, sw, sh))
+        self.parent.resizable(0, 0)
+
+
+def main():
+    root = tk.Tk()
+    MainApplication(root).pack(expand=True)
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    main()
