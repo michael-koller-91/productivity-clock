@@ -2,6 +2,24 @@ import tkinter as tk
 import datetime
 
 
+class MessageBox:
+
+    def __init__(self, parent, title, text):
+        self.top = tk.Toplevel(parent)
+        self.top.title(title)
+
+        self.label = tk.Label(self.top, text=text)
+        self.label.pack()
+
+        self.button = tk.Button(self.top, text="OK", command=self.ok)
+        self.button.pack(pady=5)
+
+        self.top.focus_force()
+
+    def ok(self):
+        self.top.destroy()
+
+
 class Core(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
@@ -20,6 +38,8 @@ class Core(tk.Frame):
         # this corresponds to 8 hours 1 minute and 12 seconds per day
         self.time_start_to_end = datetime.timedelta(hours=8, minutes=1, seconds=12)
         self.timer_end = None
+
+        self.countdown_reached_zero = False
 
         self.pause_started = None
         self.total_pause_time = None
@@ -174,6 +194,10 @@ class Core(tk.Frame):
             self.label_countdown_nr.configure(text=str(self.time_start_to_end-total_timer_time)[:7])
         # if the countdown has reached 0, continue with negative numbers (counting up in absolute value)
         else:
+            # show a dialog box if this happens for the first time
+            if not self.countdown_reached_zero:
+                self.countdown_reached_zero = True
+                MessageBox(self.parent, 'Goal Achieved', 'The countdown has reached 0.')
             self.label_countdown_nr.configure(text='-'+str(total_timer_time-self.time_start_to_end)[:7])
 
     def pause(self, _events=None):
@@ -207,4 +231,5 @@ class Core(tk.Frame):
         self.running = False
         self.timer_running = False
         self.pause_running = False
+        self.countdown_reached_zero = False
         self.startup()
