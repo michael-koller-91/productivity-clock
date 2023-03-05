@@ -1,5 +1,5 @@
-import tkinter as tk
 import core
+import tkinter as tk
 # import menu
 
 
@@ -14,6 +14,7 @@ class MainApplication(tk.Frame):
         # keyboard focus
         self.core.focus_set()
 
+        # if a menu is interesting
         # self.menu = menu.Menu(self)
         # self.menu.grid()
 

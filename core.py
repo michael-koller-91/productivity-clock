@@ -25,7 +25,6 @@ class Core(tk.Frame):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
 
-        self.mode = 'a'
         self.outfile = outfile + '.csv'
         self.save_to_csv = False
         self.save_to_csv_tk = tk.BooleanVar()
