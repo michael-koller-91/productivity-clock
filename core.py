@@ -101,13 +101,13 @@ class Core(tk.Frame):
         # row 1
         row += 1
         self.label_timer_started.grid(row=row, column=0)
-        self.label_timer_started.configure(text='Clock Started:')
+        self.label_timer_started.configure(text='Started:')
         self.label_timer_started_nr.grid(row=row, column=1)
         self.label_timer_started_nr.configure(text='00:00:00')
         # row 2
         row += 1
         self.label_timer.grid(row=row, column=0)
-        self.label_timer.configure(text='Clock Running:')
+        self.label_timer.configure(text='Running:')
         self.label_timer_nr.grid(row=row, column=1)
         self.label_timer_nr.configure(text='0:00:00')
         # row 3
@@ -119,13 +119,13 @@ class Core(tk.Frame):
         # row 4
         row += 1
         self.label_pause.grid(row=row, column=0)
-        self.label_pause.configure(text='Clock Paused:')
+        self.label_pause.configure(text='Paused:')
         self.label_pause_nr.grid(row=row, column=1)
         self.label_pause_nr.configure(text='0:00:00')
         # row 5
         row += 1
         self.label_timer_end.grid(row=row, column=0)
-        self.label_timer_end.configure(text='Clock End:')
+        self.label_timer_end.configure(text='End:')
         self.label_timer_end_nr.grid(row=row, column=1)
         self.label_timer_end_nr.configure(text='00:00:00')
         # row 6
