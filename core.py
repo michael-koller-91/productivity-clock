@@ -1,9 +1,9 @@
-import tkinter as tk
+import os
 import datetime
+import tkinter as tk
 
 
 class MessageBox:
-
     def __init__(self, parent, title, text):
         self.top = tk.Toplevel(parent)
         self.top.title(title)
@@ -21,9 +21,14 @@ class MessageBox:
 
 
 class Core(tk.Frame):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, hours, minutes, outfile, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+
+        self.mode = 'a'
+        self.outfile = outfile + '.csv'
+        self.save_to_csv = False
+        self.save_to_csv_tk = tk.BooleanVar()
 
         # when running, refresh labels every "refresh_after" milliseconds
         self.refresh_after = 1000
@@ -34,9 +39,7 @@ class Core(tk.Frame):
         self.pause_running = False
 
         self.timer_started = None
-        # 40.1 hours corresponds to 40 hours and 6 minutes
-        # this corresponds to 8 hours 1 minute and 12 seconds per day
-        self.time_start_to_end = datetime.timedelta(hours=8, minutes=1, seconds=12)
+        self.time_start_to_end = datetime.timedelta(hours=hours, minutes=minutes)
         self.timer_end = None
 
         self.countdown_reached_zero = False
@@ -55,7 +58,6 @@ class Core(tk.Frame):
     def create_widgets(self):
         # row 0
         self.button_start = tk.Button(self, text='Start', width=self.column_width, command=self.start)
-        # row 1
         self.button_pause = tk.Button(
             self, text='Pause', width=self.column_width, command=self.pause, state='disabled')
         # row 1
@@ -76,6 +78,18 @@ class Core(tk.Frame):
         # row 6
         self.button_reset = tk.Button(
             self, text='Reset', width=2*self.column_width, command=self.reset, state='disabled')
+        # row 7
+        self.checkbox = tk.Checkbutton(
+            self,
+            text='Save to .csv',
+            variable=self.save_to_csv_tk,
+            onvalue=True,
+            offvalue=False,
+            command=self.create_outfile
+        )
+
+    def create_outfile(self):
+        self.save_to_csv = self.save_to_csv_tk.get()
 
     def startup(self):
         # row 0
@@ -88,13 +102,13 @@ class Core(tk.Frame):
         # row 1
         row += 1
         self.label_timer_started.grid(row=row, column=0)
-        self.label_timer_started.configure(text='Timer Started:')
+        self.label_timer_started.configure(text='Clock Started:')
         self.label_timer_started_nr.grid(row=row, column=1)
         self.label_timer_started_nr.configure(text='00:00:00')
         # row 2
         row += 1
         self.label_timer.grid(row=row, column=0)
-        self.label_timer.configure(text='Timer:')
+        self.label_timer.configure(text='Clock Running:')
         self.label_timer_nr.grid(row=row, column=1)
         self.label_timer_nr.configure(text='0:00:00')
         # row 3
@@ -106,13 +120,13 @@ class Core(tk.Frame):
         # row 4
         row += 1
         self.label_pause.grid(row=row, column=0)
-        self.label_pause.configure(text='Pause Timer:')
+        self.label_pause.configure(text='Clock Paused:')
         self.label_pause_nr.grid(row=row, column=1)
         self.label_pause_nr.configure(text='0:00:00')
         # row 5
         row += 1
         self.label_timer_end.grid(row=row, column=0)
-        self.label_timer_end.configure(text='Timer End:')
+        self.label_timer_end.configure(text='Clock End:')
         self.label_timer_end_nr.grid(row=row, column=1)
         self.label_timer_end_nr.configure(text='00:00:00')
         # row 6
@@ -120,6 +134,9 @@ class Core(tk.Frame):
         self.button_reset.grid(row=row, column=0, columnspan=2)
         self.button_reset.configure(text='Reset')
         self.button_reset.config(state='disabled')
+        # row 7
+        row += 1
+        self.checkbox.grid(row=row, column=0, columnspan=2)
 
     def start(self, _events=None):
         # system has been running (the button shows "Stop")
@@ -137,6 +154,11 @@ class Core(tk.Frame):
 
             # switch button text from "Stop" to "Start"
             self.button_start.configure(text='Start')
+
+            if self.save_to_csv:
+                with open(self.outfile, 'a') as f:
+                    f.write(',(Stop)')
+                    f.write(datetime.datetime.now().strftime('%H:%M'))
 
         # system has not been running (the button shows "Start")
         else:
@@ -159,7 +181,36 @@ class Core(tk.Frame):
             # switch button text from "Start" to "Stop"
             self.button_start.configure(text='Stop')
 
-            # start the update loop
+            if self.save_to_csv:
+                date_today = datetime.date.today().strftime('%Y-%m-%d')
+                if not os.path.exists(self.outfile):
+                    with open(self.outfile, 'w') as f:
+                        f.write(date_today)
+                        f.write(',(Start)')
+                        f.write(datetime.datetime.now().strftime('%H:%M'))
+                else:
+                    if not os.path.getsize(self.outfile) == 0:
+                        # read last line
+                        with open(self.outfile, 'r') as f:
+                            for line in f:
+                                pass
+                        line0 = line.split(',')[0]
+                    else:
+                        line0 = ''
+
+                    # if there is not already an entry for today
+                    if line0 != date_today:
+                        with open(self.outfile, 'a') as f:
+                            if len(line0):
+                                f.write('\n')
+                            f.write(date_today)
+                            f.write(',(Start)')
+                            f.write(datetime.datetime.now().strftime('%H:%M'))
+                    else:
+                        with open(self.outfile, 'a') as f:
+                            f.write(',(Start)')
+                            f.write(datetime.datetime.now().strftime('%H:%M'))
+
             self.update_labels()
 
     def update_labels(self):
@@ -217,6 +268,11 @@ class Core(tk.Frame):
             # switch button text from "Continue" to "Pause"
             self.button_pause.configure(text='Pause')
 
+            if self.save_to_csv:
+                with open(self.outfile, 'a') as f:
+                    f.write(',(Continue)')
+                    f.write(datetime.datetime.now().strftime('%H:%M'))
+
         # if pause has not been running and the pause button is clicked (the button shows "Pause")
         else:
             self.timer_running = False
@@ -226,6 +282,11 @@ class Core(tk.Frame):
 
             # switch button text from "Pause" to "Continue"
             self.button_pause.configure(text='Continue')
+
+            if self.save_to_csv:
+                with open(self.outfile, 'a') as f:
+                    f.write(',(Pause)')
+                    f.write(datetime.datetime.now().strftime('%H:%M'))
 
     def reset(self, _events=None):
         self.running = False
