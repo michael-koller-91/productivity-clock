@@ -1,7 +1,7 @@
 # Productivity Clock
 
 <p align="center">
-    <img src=productivity_clock_start.png?>
+    <img src=productivity_clock_start.png?raw=true>
 </p>
 
 Productivity Clock uses `tkinter`.
@@ -22,7 +22,7 @@ Once `Start` is clicked, the start time is displayed in the line `Started`
 and the countdown starts.
 
 <p align="center">
-    <img src=productivity_clock_running.png?>
+    <img src=productivity_clock_running.png?raw=true>
 </p>
 
 To pause the countdown, click `Pause` (the button then displays `Continue`).
